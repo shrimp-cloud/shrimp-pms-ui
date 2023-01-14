@@ -26,9 +26,21 @@
         :default-expand-all="isExpandAll"
         :tree-props="{ children: 'children', hasChildren: 'hasChildren' }">
       <el-table-column label="分类名" prop="categoryName" min-width="160"/>
-      <el-table-column label="可见" align="center" prop="visible" min-width="80">
+      <el-table-column label="图标" prop="icon" align="center" width="60">
+        <template #default="scope">
+          <el-image style='width: 25px; height: 25px' v-if="scope.row.icon" :src='scope.row.icon' :preview-src-list=[scope.row.icon]></el-image>
+        </template>
+      </el-table-column>
+      <el-table-column label="可见" align="center" prop="visible" width="80">
         <template #default="scope"><dict-tag :options="BOOLEAN" :value="scope.row.visible"/></template>
       </el-table-column>
+      <el-table-column prop="banners" label="图片组" align="center" width="100">
+        <template #default="scope">
+          <el-image style='width: 40px; height: 40px' v-if="scope.row.bannerArr" :src='scope.row.bannerArr[0]' :preview-src-list=scope.row.bannerArr></el-image>
+        </template>
+      </el-table-column>
+      <el-table-column label="关键词" prop="keywords" min-width="160"/>
+      <el-table-column label="描述" prop="description" min-width="160"/>
       <el-table-column label="排序" prop="sort" min-width="80"/>
       <el-table-column label="修改人" align="left" prop="updateByName" min-width="100" :show-overflow-tooltip="true"/>
       <el-table-column label="修改时间" align="center" prop="updateTime" min-width="160">
@@ -38,7 +50,7 @@
       <el-table-column label="创建时间" align="center" prop="createTime" min-width="160">
         <template #default="scope"><span>{{ parseTime(scope.row.createTime) }}</span></template>
       </el-table-column>
-      <el-table-column label="操作" align="left" width="200" class-name="small-padding fixed-width">
+      <el-table-column label="操作" align="left" fixed='right' width="200" class-name="small-padding fixed-width">
         <template #default="scope">
           <el-button type="text" icon="Edit" @click="handleUpdate(scope.row)">修改</el-button>
           <el-button type="text" icon="Plus" @click="handleAdd(scope.row)">新增</el-button>
@@ -46,7 +58,7 @@
         </template>
       </el-table-column>
     </el-table>
-    
+
     <edit ref="editRef" @change="getList"/>
   </div>
 </template>
@@ -74,6 +86,11 @@ function getList() {
   loading.value = true;
   productCategoryList(queryParams.value).then(res => {
     const datas = res.data;
+    for (const data of datas) {
+      if (data.banners) {
+        data.bannerArr = data.banners.split(',');
+      }
+    }
     dataList.value = proxy.handleTree(datas, "categoryCode", "pcode", "children");
   }).finally(() => {
     loading.value = false;
