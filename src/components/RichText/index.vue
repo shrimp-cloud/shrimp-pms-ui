@@ -35,7 +35,7 @@ import request from '@/utils/request';
 const { value } = defineProps({
   value: {
     type: String,
-    default: undefined,
+    default: '',
   },
 });
 const emit = defineEmits(['update:value']);

@@ -2,9 +2,8 @@
   <el-dialog :title="title" v-model="open" width="900px" append-to-body draggable :close-on-click-modal="false">
 
     <el-form ref="editRef" :model="form" :rules="rules" label-width="120px">
-      <el-tabs type="border-card">
-        <el-tab-pane label="基础信息">
-
+      <el-tabs type="border-card" v-model="activeName">
+        <el-tab-pane name="baseInfo" label="基础信息">
           <el-row :gutter="20">
             <el-col :span="12">
               <el-form-item label="商品名称" prop="productName">
@@ -26,9 +25,15 @@
               </el-form-item>
             </el-col>
             <el-col :span="12">
+
               <el-form-item label="封面" prop="pic">
-                <el-input v-model="form.pic" placeholder="请输入 封面" />
+                <image-preview v-if="form.pic" :src="form.pic" :height="80" :width="80"/>
+                <div style="padding: 0 12px 0 12px">
+                  <image-choise @select="getImage"/>
+                  <el-button type="danger" v-if="form.pic" @click="removeImage">移除图片</el-button>
+                </div>
               </el-form-item>
+
               <el-form-item label="关键词" prop="keywords">
                 <el-input v-model="form.keywords" placeholder="请输入 关键词" />
               </el-form-item>
@@ -38,9 +43,9 @@
             </el-col>
           </el-row>
         </el-tab-pane>
-        <el-tab-pane label="图文详情">
-          <el-form-item prop="detail1Html">
-            <el-input v-model="form.detail1Html" type="textarea" placeholder="请输入商品名称" />
+        <el-tab-pane name="detail1Html" label="图文详情">
+          <el-form-item prop="detail1Html" label-width="0px">
+            <rich-text v-model:value="form.detail1Html" ref="detail1HtmlRef" placeholder="请编辑商品图文信息"/>
           </el-form-item>
         </el-tab-pane>
       </el-tabs>
@@ -57,11 +62,14 @@
 
 <script setup name="ProductEdit">
 import { productInfo, productSave } from "@/api/product";
+import RichText from '@/components/RichText';
+import ImageChoise from '@/views/components/ImageChoise';
 
 defineExpose({handleEdit})
 const emit = defineEmits(['change']);
 const { proxy } = getCurrentInstance();
 const { PRODUCT_TYPE } = proxy.useDict("PRODUCT_TYPE");
+const activeName = ref('baseInfo')
 const open = ref(false);
 const title = ref("");
 const form = ref({});
@@ -87,6 +95,7 @@ function cancel() {
 // 新增/修改按钮操作
 function handleEdit(row) {
   reset();
+  activeName.value = 'baseInfo';
   if (!row || !row.id) {
     open.value = true;
     title.value = "添加商品";
@@ -98,6 +107,15 @@ function handleEdit(row) {
     });
   }
 }
+
+function getImage(val) {
+  form.value.pic = val.imageUrl;
+}
+
+function removeImage() {
+  form.value.pic = undefined;
+}
+
 
 /** 提交按钮 */
 function submitForm() {

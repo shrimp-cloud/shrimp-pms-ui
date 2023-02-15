@@ -2,13 +2,16 @@
   <div class="app-container">
     <el-form :model="queryParams" ref="queryRef" :inline="true" label-width="68px">
       <el-form-item prop="appCode">
-        <el-input v-model="queryParams.productName" placeholder="商品名称" clearable style="width: 160px" @keyup.enter="handleQuery"/>
+        <el-input v-model="queryParams.productName" placeholder="商品名称" clearable style="width: 200px" @keyup.enter="handleQuery"/>
       </el-form-item>
-      <!--
+      <el-form-item prop="productType">
+        <el-select v-model="queryParams.productType" placeholder="商品类型" clearable style="width: 160px" @change="handleQuery">
+          <el-option v-for="dict in PRODUCT_TYPE" :key="dict.value" :label="dict.label" :value="dict.value" />
+        </el-select>
+      </el-form-item>
       <el-form-item>
         <el-date-picker v-model="dateRange" style='width: 380px' value-format="YYYY-MM-DD HH:mm:ss" type="datetimerange" range-separator="-" start-placeholder="开始时间" end-placeholder="结束时间"/>
       </el-form-item>
-      -->
       <el-form-item>
         <el-button type="primary" icon="Search" @click="handleQuery" v-hasPermi="['page']">搜索</el-button>
         <el-button icon="Refresh" @click="resetQuery">重置</el-button>
@@ -19,13 +22,20 @@
     </el-form>
     <el-table v-loading="loading" :height="tableHeight" :data="dataList">
       <el-table-column label="ID" align="center" prop="id" width="80"/>
-      <el-table-column label="商品名称" align="left" prop="productName" min-width="120" :show-overflow-tooltip="true" />
-      <!--
-      <el-table-column label="应用名称" align="left" prop="appName" min-width="160" :show-overflow-tooltip="true" />
-      <el-table-column label="访问地址" align="left" prop="domain" min-width="240" :show-overflow-tooltip="true"/>
-      <el-table-column label="排序" align="left" prop="sort" min-width="80" :show-overflow-tooltip="true"/>
-      <el-table-column label="备注" align="left" prop="comments" min-width="200" :show-overflow-tooltip="true"/>
-      -->
+      <el-table-column prop="avatar" label="封面" align="center" width="60">
+        <template #default="scope">
+          <el-image style='width: 25px; height: 25px' :src='scope.row.pic' :preview-src-list=[scope.row.pic]></el-image>
+        </template>
+      </el-table-column>
+      <el-table-column label="商品名称" align="left" prop="productName" min-width="160" :show-overflow-tooltip="true" />
+      <el-table-column label="商品类型" align="center" prop="productType" width="120">
+        <template #default="scope"><dict-tag :options="PRODUCT_TYPE" :value="scope.row.productType"/></template>
+      </el-table-column>
+      <el-table-column label="商品分类" align="left" prop="categoryCode" min-width="120" :show-overflow-tooltip="true" />
+      <el-table-column label="单位" align="left" prop="unit" min-width="120" :show-overflow-tooltip="true" />
+      <el-table-column label="使用范围" align="left" prop="useScope" min-width="120" :show-overflow-tooltip="true" />
+      <el-table-column label="关键词" align="left" prop="keywords" min-width="120" :show-overflow-tooltip="true" />
+      <el-table-column label="商品描述" align="left" prop="description" min-width="120" :show-overflow-tooltip="true" />
       <el-table-column label="修改人" align="left" prop="updateBy" width="100" :show-overflow-tooltip="true"/>
       <el-table-column label="修改时间" align="center" prop="updateTime" width="160">
         <template #default="scope"><span>{{ parseTime(scope.row.updateTime) }}</span></template>
@@ -60,6 +70,7 @@ import {parseTime} from "@/utils/ruoyi";
 
 const { proxy } = getCurrentInstance();
 const tableHeight = computed(() => window.innerHeight - 216);
+const { PRODUCT_TYPE } = proxy.useDict("PRODUCT_TYPE");
 const dataList = ref([]);
 const loading = ref(true);
 const total = ref(0);
