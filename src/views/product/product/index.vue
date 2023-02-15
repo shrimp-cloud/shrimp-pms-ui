@@ -49,13 +49,13 @@
         @pagination="getList"
     />
 
-    <edit ref="editRef" @change="getList"/>
+    <edit-base ref="editBaseRef" @change="getList"/>
   </div>
 </template>
 
 <script setup name="ProductPage">
 import {productPage, productRemove} from "@/api/product";
-import Edit from "./components/edit";
+import EditBase from "./components/editBase";
 import {parseTime} from "@/utils/ruoyi";
 
 const { proxy } = getCurrentInstance();
@@ -105,10 +105,10 @@ function resetQuery() {
 }
 
 function handleAdd() {
-  proxy.$refs["editRef"].handleEdit();
+  proxy.$refs["editBaseRef"].handleEdit();
 }
 function handleUpdate(row) {
-  proxy.$refs["editRef"].handleEdit(row);
+  proxy.$refs["editBaseRef"].handleEdit(row);
 }
 
 /** 删除按钮操作 */
