@@ -26,7 +26,7 @@
       </el-form-item>
     </el-form>
 
-    <el-table v-loading='loading' height="680" :data='dataList'>
+    <el-table v-loading='loading' :height="tableHeight" :data='dataList'>
       <el-table-column label='ID' prop='id' width='60' />
       <el-table-column label='logo' prop='logo' :show-overflow-tooltip='true' width='80'>
         <template #default='scope'>
@@ -101,6 +101,7 @@ import {
 } from '@/api/platformCoupon';
 import Edit from "./components/edit"
 
+const tableHeight = computed(() => window.innerHeight - 216);
 const { proxy } = getCurrentInstance();
 const { COUPON_TYPE, COUPON_STATUS, BOOLEAN  } = proxy.useDict("COUPON_TYPE", "COUPON_STATUS", "BOOLEAN");
 
