@@ -34,6 +34,11 @@
       <el-table-column label="商品分类" align="left" prop="categoryCode" min-width="120" :show-overflow-tooltip="true" />
       <el-table-column label="单位" align="left" prop="unit" min-width="120" :show-overflow-tooltip="true" />
       <el-table-column label="使用范围" align="left" prop="useScope" min-width="120" :show-overflow-tooltip="true" />
+      <el-table-column label="发布状态" align="center" prop="publishStatus" width="80">
+        <template #default="scope"><dict-tag :options="BOOLEAN" :value="scope.row.publishStatus"/></template>
+      </el-table-column>
+      <el-table-column label="总销量" align="left" prop="saleTotal" min-width="80" :show-overflow-tooltip="true" />
+      <el-table-column label="SKU" align="left" prop="skuCount" min-width="80" :show-overflow-tooltip="true" />
       <el-table-column label="关键词" align="left" prop="keywords" min-width="120" :show-overflow-tooltip="true" />
       <el-table-column label="商品描述" align="left" prop="description" min-width="120" :show-overflow-tooltip="true" />
       <el-table-column label="修改人" align="left" prop="updateBy" width="100" :show-overflow-tooltip="true"/>
@@ -44,9 +49,10 @@
       <el-table-column label="创建时间" align="center" prop="createTime" width="160">
         <template #default="scope"><span>{{ parseTime(scope.row.createTime) }}</span></template>
       </el-table-column>
-      <el-table-column label="操作" align="center" fixed='right' width="160" class-name="small-padding fixed-width">
+      <el-table-column label="操作" align="center" fixed='right' width="200" class-name="small-padding fixed-width">
         <template #default="scope">
           <el-button type="text" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['update']">修改</el-button>
+          <el-button type="text" icon="Edit" @click="handleSku(scope.row)" v-hasPermi="['sku']">SKU</el-button>
           <el-button type="text" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['remove']">删除</el-button>
         </template>
       </el-table-column>
@@ -60,17 +66,19 @@
     />
 
     <edit-base ref="editBaseRef" @change="getList"/>
+    <edit-sku ref="editSkuRef" @change="getList"/>
   </div>
 </template>
 
 <script setup name="ProductPage">
 import {productPage, productRemove} from "@/api/product";
 import EditBase from "./components/editBase";
+import EditSku from "./components/editSku";
 import {parseTime} from "@/utils/ruoyi";
 
 const { proxy } = getCurrentInstance();
 const tableHeight = computed(() => window.innerHeight - 216);
-const { PRODUCT_TYPE } = proxy.useDict("PRODUCT_TYPE");
+const { PRODUCT_TYPE, BOOLEAN } = proxy.useDict("PRODUCT_TYPE", "BOOLEAN");
 const dataList = ref([]);
 const loading = ref(true);
 const total = ref(0);
@@ -84,7 +92,7 @@ const queryParams = ref({
 function init() {
   const now = new Date();
   dateRange.value = [
-    parseTime(now.setDate(now.getMonth()-1), '{y}-{m}-{d}') + ' 00:00:00',
+    parseTime(now.setMonth(now.getMonth()-1), '{y}-{m}-{d}') + ' 00:00:00',
     parseTime(new Date(), '{y}-{m}-{d}') + ' 23:59:59'
   ];
   queryParams.value.current = 1;
@@ -120,6 +128,9 @@ function handleAdd() {
 }
 function handleUpdate(row) {
   proxy.$refs["editBaseRef"].handleEdit(row);
+}
+function handleSku(row) {
+  proxy.$refs["editSkuRef"].handleEdit(row);
 }
 
 /** 删除按钮操作 */
