@@ -43,8 +43,8 @@
               <el-icon v-if="node.level === 1 && form.props.length > 1" @click="removeNode(node, data)"><remove-filled /></el-icon>
               <el-icon v-if="node.level === 2 && node?.parent?.data?.propItems?.length > 1" @click="removeNode(node, data)"><remove-filled /></el-icon>
 
-              <!-- 各元素的最后一项，展示 + 图标 -->
-              <el-icon v-if="node.level === 1 && form.props.length === (data.index + 1)" @click="addNode(node, data)"><circle-plus-filled /></el-icon>
+              <!-- 各元素的最后一项，展示 + 图标. 一级不能超过3个 -->
+              <el-icon v-if="node.level === 1 && form.props.length === (data.index + 1) && form.props.length < 3" @click="addNode(node, data)"><circle-plus-filled /></el-icon>
               <el-icon v-if="node.level === 2 && node?.parent?.data?.propItems?.length === (data.index + 1)" @click="addNode(node, data)"><circle-plus-filled /></el-icon>
             </span>
 
@@ -152,6 +152,17 @@ const form = ref({
   skuStocks: []
 });
 
+const defaultProps = [
+  {id: 1, propName: '颜色', propItems: [{id: 1, itemValue: '白色'},{id: 2, itemValue: '黑色'}]},
+  {id: 2, propName: '尺寸', propItems: [{id: 3, itemValue: '中杯'},{id: 4, itemValue: '大杯'}, {id: 5, itemValue: '超大杯'}]},
+  {id: 3, propName: '糖份', propItems: [{id: 6, itemValue: '少糖'},{id: 7, itemValue: '多糖'}]},
+];
+const defaultPropsBack = [
+  {propName: '颜色', propItems: [{itemValue: '白色'},{itemValue: '黑色'}]},
+  {propName: '尺寸', propItems: [{itemValue: '中杯'},{itemValue: '大杯'}, {itemValue: '超大杯'}]},
+  {propName: '糖份', propItems: [{itemValue: '少糖'},{itemValue: '多糖'}]},
+];
+
 function reset() {
   form.value.skuStocks = [];
   form.value.props = [];
@@ -171,34 +182,11 @@ function handleEdit(row) {
     if (res.data.skuStocks.length > 0) {
       isCreate.value = false;
     }
-    form.value.skuStocks = [{id: 1, stockDesc: 'aaa'}, {id: 2, stockDesc: 'ccc'}];
-
-    const demoData = [
-      {
-        id: 11,
-        propName: '颜色',
-        propItems: [
-          {
-            itemValue: '白色'
-          },
-          {
-            itemValue: '黑色'
-          }
-        ]
-      },
-      {
-        id: 12,
-        propName: '内存',
-        propItems: [
-          {
-            itemValue: '128G'
-          }
-        ]
-      }
-    ];
-
-    addIndex(demoData);
-    form.value.props = demoData;
+    form.value.skuStocks = res.data.skuStocks;
+    const props = res.data.props;
+    form.value.props = props && props.length > 0 ?  props : defaultProps;
+    addIndex(form.value.props);
+    calcSkuStocks(form.value.props);
     open.value = true;
     title.value = "SKU 维护";
   });
@@ -216,16 +204,46 @@ function addNode(node, data) {
   }
   // 重新计算 index
   addIndex(form.value.props);
+  calcSkuStocks(form.value.props);
 }
 // 移除节点
 function removeNode(node, data) {
   proxy.$refs["propTreeRef"].remove(node);
   addIndex(form.value.props);
+  calcSkuStocks(form.value.props);
 }
 
 function inputNode(node, data) {
   console.log('inputNode', node, data);
+  calcSkuStocks(form.value.props);
 }
+
+
+function calcSkuStocks(props) {
+  /*
+  const newSku = props[0].id === undefined;
+  const prop0Size = props.length === 1 ? props[0].propItems.length : 1;
+  const prop1Size = props.length === 2 ? props[1].propItems.length : 1;
+  const prop2Size = props.length === 3 ? props[2].propItems.length : 1;
+  const skuSize = prop0Size * prop1Size * prop2Size;
+  const skuStocks = newSku ? [skuSize]: form.value.skuStocks;
+   */
+  const skuProps = cartesianProductOf(props);
+  console.log(rt);
+
+}
+function cartesianProductOf(props) {
+  return Array.prototype.reduce.call(props, function(a, b) {
+    const result = [];
+    a.forEach(ia => {
+      b.propItems.forEach(ib => {
+        result.push(ia.concat(ib))
+      })
+    })
+    return result
+  }, [[]])
+}
+
 
 /** 提交按钮 */
 function submitForm() {
