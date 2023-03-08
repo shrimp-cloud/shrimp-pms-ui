@@ -33,6 +33,18 @@
 
           </template>
         </el-tree>
+        <div style="color: orange;">
+          <span>Tips：</span>
+          <ol>
+            <li>商品属性：1~3 个</li>
+            <li>属性内容：1+ 个，不建议太多</li>
+            <li>创建：可增减属性及内容数量</li>
+            <li>修改：只允许修改描述文案</li>
+            <li>促销价：留空时与原价相等</li>
+            <li>订金：留空时为 0</li>
+            <li>预设销量：留空时为 0</li>
+          </ol>
+        </div>
         <!--
 
           <p class="custom-tree-node" #default="{ node, data }">
@@ -60,11 +72,11 @@
       <el-col :span="19">
 
         <el-form :inline="true" :model="batchSkuData" class="demo-form-inline" >
-          <el-form-item label="总价">
-            <el-input-number size="small" v-model="batchSkuData.originPrice" controls-position="right" placeholder="总价格" style="width: 100px;"/>
+          <el-form-item label="原价">
+            <el-input-number size="small" v-model="batchSkuData.originPrice" controls-position="right" placeholder="原价" style="width: 100px;"/>
           </el-form-item>
           <el-form-item label="促销价">
-            <el-input-number size="small" v-model="batchSkuData.promotionPrice" controls-position="right" placeholder="促销价格" style="width: 100px;"/>
+            <el-input-number size="small" v-model="batchSkuData.promotionPrice" controls-position="right" placeholder="促销价" style="width: 100px;"/>
           </el-form-item>
           <el-form-item label="订金">
             <el-input-number size="small" v-model="batchSkuData.deposit" controls-position="right" placeholder="订金"  style="width: 100px;"/>
@@ -98,14 +110,14 @@
               </template>
             </el-table-column>
             -->
-            <el-table-column label="总价格" prop="originPrice" :show-overflow-tooltip="true" min-width="100">
+            <el-table-column label="原价" prop="originPrice" :show-overflow-tooltip="true" min-width="100">
               <template #default="scope">
-                <el-input-number size="small" type="number" v-model="scope.row.originPrice" controls-position="right" placeholder="总价格"/>
+                <el-input-number size="small" type="number" v-model="scope.row.originPrice" controls-position="right" placeholder="原价"/>
               </template>
             </el-table-column>
-            <el-table-column label="促销价格" prop="promotionPrice" :show-overflow-tooltip="true" min-width="100">
+            <el-table-column label="促销价" prop="promotionPrice" :show-overflow-tooltip="true" min-width="100">
               <template #default="scope">
-                <el-input-number size="small" type="number" v-model="scope.row.promotionPrice" controls-position="right" placeholder="促销价格"/>
+                <el-input-number size="small" type="number" v-model="scope.row.promotionPrice" controls-position="right" placeholder="促销价"/>
               </template>
             </el-table-column>
             <el-table-column label="订金" prop="deposit" :show-overflow-tooltip="true" min-width="100">
@@ -138,7 +150,7 @@
 </template>
 
 <script setup name="ProductSku">
-import {skuStockList, productSave, productRemove} from "@/api/product";
+import {productSkuInfo, productSkuSave} from "@/api/product";
 import ImageChoise from '@/views/components/ImageChoise';
 
 defineExpose({handleEdit})
@@ -174,7 +186,7 @@ function cancel() {
 // 新增/修改按钮操作
 function handleEdit(row) {
   reset();
-  skuStockList({productId: row.id}).then(res => {
+  productSkuInfo({productId: row.id}).then(res => {
     form.value = res.data;
     if (res.data.skuStocks.length > 0) {
       isCreate.value = false;
@@ -185,7 +197,7 @@ function handleEdit(row) {
     addIndex(form.value.props);
     calcSkuStocks(form.value.props);
     open.value = true;
-    title.value = "SKU 维护";
+    title.value = row.productName + ": SKU " + (isCreate.value ? '创建':'修改');
   });
 }
 // 增加节点
@@ -269,14 +281,73 @@ function batchSetSock() {
 
 /** 提交按钮 */
 function submitForm() {
-  proxy.$refs["editRef"].validate(valid => {
-    if (valid) {
-      productSave(form.value).then(res => {
-        proxy.$modal.msgSuccess("修保存成功");
-        open.value = false;
-        emit("change", true);
-      });
+  const props = form.value.props;
+  if (!props || props.length === 0) {
+    proxy.$modal.msgError("商品属性名称缺失！");
+    return;
+  }
+  // 商品属性名称重复检测
+  const propNames = props.map(p => p.propName);
+  const propNames2 = [...new Set(propNames)];
+  if (propNames.length !== propNames2.length) {
+    proxy.$modal.msgError("商品属性名称不能重复！");
+    return;
+  }
+
+  for (const prop of props) {
+    // 商品属性名称检测
+    if (!prop.propName) {
+      proxy.$modal.msgError("商品属性名称不能为空");
+      return;
     }
+    const propItems = prop.propItems;
+    if (!propItems || propItems.length === 0) {
+      proxy.$modal.msgError("商品属性内容信息缺失！");
+      return;
+    }
+
+    // 属性名称重复检测
+    const itemValues = propItems.map(p => p.itemValue);
+    const itemValues2 = [...new Set(itemValues)];
+    if (itemValues.length !== itemValues2.length) {
+      proxy.$modal.msgError("商品属性内容不能重复！");
+      return;
+    }
+    for (const item of propItems) {
+      // 商品属性名称检测
+      if (!item.itemValue) {
+        proxy.$modal.msgError("商品属性内容不能为空");
+        return;
+      }
+    }
+  }
+
+  const skuStocks = form.value.skuStocks;
+  for (const sku of skuStocks) {
+    if (sku.originPrice === undefined) {
+      proxy.$modal.msgError("商品原价不能为空");
+      return;
+    }
+    if (sku.stock === undefined) {
+      proxy.$modal.msgError("商品库存不能为空");
+      return;
+    }
+
+    if (sku.promotionPrice === undefined) {
+      sku.promotionPrice = sku.originPrice;
+    }
+    if (sku.deposit === undefined) {
+      sku.deposit = 0;
+    }
+    if (sku.salePre === undefined) {
+      sku.salePre = 0;
+    }
+  }
+
+  productSkuSave(form.value).then(res => {
+    proxy.$modal.msgSuccess("修保存成功");
+    open.value = false;
+    emit("change", true);
   });
 }
 
