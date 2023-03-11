@@ -49,6 +49,12 @@
       <el-table-column label="创建时间" align="center" prop="createTime" width="160">
         <template #default="scope"><span>{{ parseTime(scope.row.createTime) }}</span></template>
       </el-table-column>
+
+      <el-table-column label="上下架" align="center" fixed='right' width="70" class-name="small-padding fixed-width">
+        <template #default="scope">
+          <el-switch v-model='scope.row.publishStatus' :active-value='1' :inactive-value='0' @change='handlePublish(scope.row)' v-hasPermi="['onOffShelves']" />
+        </template>
+      </el-table-column>
       <el-table-column label="操作" align="center" fixed='right' width="200" class-name="small-padding fixed-width">
         <template #default="scope">
           <el-button type="text" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['update']">修改</el-button>
@@ -71,7 +77,7 @@
 </template>
 
 <script setup name="ProductPage">
-import {productPage, productRemove} from "@/api/product";
+import {productPage, productRemove, productShelvesOn, productShelvesOff} from "@/api/product";
 import EditBase from "./components/editBase";
 import EditSku from "./components/editSku";
 import {parseTime} from "@/utils/ruoyi";
@@ -121,6 +127,27 @@ function resetQuery() {
   init();
   proxy.resetForm("queryRef");
   handleQuery();
+}
+
+
+// 上下架
+function handlePublish(row) {
+  loading.value = true;
+  if (row.publishStatus === 1) {
+    productShelvesOn({id: row.id}).then((res) => {
+      proxy.$modal.msgSuccess("上架成功：" + res.msg);
+      getList();
+    }).finally(() => {
+      loading.value = false;
+    });
+  } else {
+    productShelvesOff({id: row.id}).then((res) => {
+      proxy.$modal.msgSuccess("下架成功：" + res.msg);
+      getList();
+    }).finally(() => {
+      loading.value = false;
+    });
+  }
 }
 
 function handleAdd() {

@@ -18,3 +18,9 @@ export function productSkuInfo(params) {
 export function productSkuSave(data) {
   return request({ url: '/pms/product/sku/save', method: 'post', data });
 }
+export function productShelvesOn(data) {
+  return request({ url: '/pms/product/shelves/on', method: 'post', data });
+}
+export function productShelvesOff(data) {
+  return request({ url: '/pms/product/shelves/off', method: 'post', data });
+}
