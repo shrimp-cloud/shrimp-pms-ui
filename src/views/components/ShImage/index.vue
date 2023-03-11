@@ -1,6 +1,20 @@
 <template>
   <div>
-    <el-button type="primary" @click="getList">选择图片</el-button>
+
+    <el-image
+      :src="props.modelValue"
+      style="width: 120px; height: 120px;"
+      :style="`width:${realWidth};height:${realHeight};`"
+      :placeholder="props.placeholder"
+      @click="getList"
+    >
+      <template #error>
+        <div class="image-slot">
+          <el-icon><Picture /></el-icon>
+        </div>
+      </template>
+    </el-image>
+
 
     <el-dialog :title="title" v-model="open" width="840px" append-to-body draggable :close-on-click-modal="false">
       <el-form :model="queryParams" ref="queryRef" :inline="true" label-width="68px">
@@ -16,9 +30,9 @@
         <el-empty description="无图片" />
       </div>
       <el-row v-if="dataList && dataList.length > 0" :gutter="10" class="mb8">
-        <el-col :span="4" v-for="image in dataList">
-          <img :src="image.imageUrl" :alt="image.imageName" style="width: 120px; height: 120px;" @click="click(image)"/>
-          <span>{{image.imageName}}</span>
+        <el-col :span="4" v-for="item in dataList">
+          <img :src="item.imageUrl" :alt="item.imageName" style="width: 120px; height: 120px;" @click="click(item)"/>
+          <span>{{item.imageName}}</span>
         </el-col>
       </el-row>
 
@@ -38,21 +52,33 @@
 import { imageLibraryPage } from "@/api/common";
 
 const props = defineProps({
-  width: {
-    type: Number,
-    default: 280,
+  modelValue: String,
+  placeholder: {
+    type: String,
+    default: "请选择图片"
   },
+  width: {
+    type: [Number, String],
+    default: "64px"
+  },
+  height: {
+    type: [Number, String],
+    default: "64px"
+  }
 });
 
-const emit = defineEmits(['select']);
+const emit = defineEmits(['update:modelValue']);
 const { proxy } = getCurrentInstance();
 const { IMAGE_TYPE } = proxy.useDict("IMAGE_TYPE");
+
+const realWidth = computed(() => typeof props.width == "string" ? props.width : `${props.width}px`);
+const realHeight = computed(() => typeof props.height == "string" ? props.height : `${props.height}px`);
 
 const dataList = ref([]);
 const open = ref(false);
 const loading = ref(true);
 const total = ref(0);
-const title = ref("单击-选择图片");
+const title = ref("请选择图片");
 const queryParams = ref({
   current: 1,
   size: 12,
@@ -79,9 +105,11 @@ function getList() {
 
 /** 选择数据 */
 function click(val) {
+  emit("update:modelValue", val.imageUrl);
+  /*
   image.value.imageUrl = val.imageUrl;
   image.value.imageAlt = val.imageName;
-  emit("select", image.value);
+  */
   open.value = false;
 }
 
@@ -92,3 +120,19 @@ function handleQuery() {
 }
 
 </script>
+
+<style scoped>
+.image-slot {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  background: var(--el-fill-color-light);
+  color: var(--el-text-color-secondary);
+  font-size: 30px;
+}
+.image-slot .el-icon {
+  font-size: 30px;
+}
+</style>

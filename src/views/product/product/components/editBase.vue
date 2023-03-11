@@ -25,15 +25,9 @@
               </el-form-item>
             </el-col>
             <el-col :span="12">
-
               <el-form-item label="封面" prop="pic">
-                <image-preview v-if="form.pic" :src="form.pic" :height="80" :width="80"/>
-                <div style="padding: 0 12px 0 12px">
-                  <image-choise @select="getImage"/>
-                  <el-button type="danger" v-if="form.pic" @click="removeImage">移除图片</el-button>
-                </div>
+                <sh-image v-model="form.pic" placeholder="请选择图片"/>
               </el-form-item>
-
               <el-form-item label="关键词" prop="keywords">
                 <el-input v-model="form.keywords" placeholder="请输入 关键词" />
               </el-form-item>
@@ -63,7 +57,7 @@
 <script setup name="ProductEdit">
 import { productInfo, productSave } from "@/api/product";
 import RichText from '@/components/RichText';
-import ImageChoise from '@/views/components/ImageChoise';
+import ShImage from '@/views/components/ShImage';
 
 defineExpose({handleEdit})
 const emit = defineEmits(['change']);

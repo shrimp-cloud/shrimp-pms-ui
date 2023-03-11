@@ -31,6 +31,7 @@ window.addEventListener('message', function(e){
 <style>
 .cas-login {
   height: 100%;
+  overflow-y: hidden;
 }
 .cas-login iframe {
   border: 0;

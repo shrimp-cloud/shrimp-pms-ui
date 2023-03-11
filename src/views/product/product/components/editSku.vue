@@ -28,7 +28,8 @@
 
             <!-- 修改 -->
             <span v-if="!isCreate">
-              <span>{{data.propName || data.itemValue}}</span>
+              <el-input size="small" v-if="node.level === 1" v-model="data.propName" @input="inputNode(node, data)" style="width: 160px; "/>
+              <el-input size="small" v-if="node.level === 2" v-model="data.itemValue" @input="inputNode(node, data)" style="width: 160px; "/>
             </span>
 
           </template>
@@ -45,32 +46,8 @@
             <li>预设销量：留空时为 0</li>
           </ol>
         </div>
-        <!--
-
-          <p class="custom-tree-node" #default="{ node, data }">
-            <template v-if="form.props.length > 0">
-              <input type="hidden" v-model="form.props.length">
-              <span>{{ data.propertyValue || data.propName }}</span>
-              <span>
-                <i v-if="id && node.level < 3" class="el-icon-plus noCursor" title="无法增加商品规格" @click="$message.error('增加商品规格属性只适用于新增产品')"/>
-                <i v-else-if="node.level < 3" class="el-icon-plus" @click="() => addTreeItem(node, data)"/>
-
-                <i v-if="node.level > 1" class="el-icon-edit" @click="() => editTreeItem(node, data)"/>
-                <i v-if="id && node.level > 1" class="el-icon-delete" title="无法删除商品规格" @click="$message.error('删除商品规格属性只适用于新增产品')"/>
-
-                <i v-else-if="node.level > 1" class="el-icon-delete" @click="() => removeTreeItem(node, data)"/>
-              </span>
-            </template>
-            <template v-else>
-              <input type="text" v-model="data.propertyName" v-if="node.level === 2" @change="() => closeTreeItem(node, data)">
-              <input type="text" v-model="data.propertyValue" v-if="node.level === 3" @change="() => closeTreeItem(node, data)">
-              <i class="el-icon-check" @click="() => closeTreeItem(node, data)"/>
-            </template>
-          </p>
-        -->
       </el-col>
       <el-col :span="19">
-
         <el-form :inline="true" :model="batchSkuData" class="demo-form-inline" >
           <el-form-item label="原价">
             <el-input-number size="small" v-model="batchSkuData.originPrice" controls-position="right" placeholder="原价" style="width: 100px;"/>
@@ -195,7 +172,9 @@ function handleEdit(row) {
     const props = res.data.props;
     form.value.props = props && props.length > 0 ?  props : defaultProps;
     addIndex(form.value.props);
-    calcSkuStocks(form.value.props);
+    if (isCreate.value) {
+      calcSkuStocks(form.value.props);
+    }
     open.value = true;
     title.value = row.productName + ": SKU " + (isCreate.value ? '创建':'修改');
   });
@@ -223,7 +202,11 @@ function removeNode(node, data) {
 }
 
 function inputNode(node, data) {
-  calcSkuStocks(form.value.props);
+  if (isCreate.value) {
+    calcSkuStocks(form.value.props);
+  } else {
+    updateProps();
+  }
 }
 
 function calcSkuStocks(props) {
@@ -231,27 +214,23 @@ function calcSkuStocks(props) {
   const skuStocks = [];
   for (let skuProp of skuProps) {
     const sku = {};
-    let stockDesc = skuProp[0].itemValue;
-
     sku.prop1Id = skuProp[0].propId;
     sku.item1Id = skuProp[0].id;
     sku.item1Desc = skuProp[0].itemValue;
     if (skuProp.length > 1) {
-      stockDesc = stockDesc + '-' + skuProp[1].itemValue;
       sku.prop2Id = skuProp[1].propId;
       sku.item2Id = skuProp[1].id;
       sku.item2Desc = skuProp[1].itemValue;
     }
     if (skuProp.length > 2) {
-      stockDesc = stockDesc + '-' + skuProp[2].itemValue;
       sku.prop3Id = skuProp[2].propId;
       sku.item3Id = skuProp[2].id;
       sku.item3Desc = skuProp[2].itemValue;
     }
-    sku.stockDesc = stockDesc;
     skuStocks.push(sku);
   }
   form.value.skuStocks = skuStocks;
+  syncSkuDesc();
 }
 function cartesianProductOf(props) {
   return Array.prototype.reduce.call(props, function(a, b) {
@@ -264,6 +243,42 @@ function cartesianProductOf(props) {
     return result
   }, [[]])
 }
+// 更新 sku 列表里面的 prop1,2,3 的文字信息
+function updateProps() {
+  const props = form.value.props;
+  const skuStocks = form.value.skuStocks;
+  for (const prop of props) {
+    for (const item of prop.propItems) {
+      for (const sku of skuStocks) {
+        if (sku.item1Id && sku.item1Id === item.id) {
+          sku.item1Desc = item.itemValue;
+        }
+        if (sku.item2Id && sku.item2Id === item.id) {
+          sku.item2Desc = item.itemValue;
+        }
+        if (sku.item3Id && sku.item3Id === item.id) {
+          sku.item3Desc = item.itemValue;
+        }
+      }
+    }
+  }
+  syncSkuDesc();
+}
+// 更新 sku 列表里面的desc信息
+function syncSkuDesc() {
+  const skuStocks = form.value.skuStocks;
+  for (const sku of skuStocks) {
+    let stockDesc = sku.item1Desc;
+    if (sku.item2Desc) {
+      stockDesc = stockDesc + '-' + sku.item2Desc;
+    }
+    if (sku.item3Desc) {
+      stockDesc = stockDesc + '-' + sku.item3Desc;
+    }
+    sku.stockDesc = stockDesc;
+  }
+}
+
 
 function batchSetSock() {
   proxy.$modal.confirm('批量设置会覆盖所有已填写的内容，确定要批量设置吗？').then(() => {
