@@ -15,7 +15,16 @@
                 </el-radio-group>
               </el-form-item>
               <el-form-item label="商品分类" prop="categoryCode">
-                <el-input v-model="form.categoryCode" placeholder="请输入 商品分类" />
+                <el-tree-select
+                    style="width: 100%; "
+                    v-model="form.categoryCode"
+                    :data="categoryOptions"
+                    :render-after-expand="false"
+                    node-key="categoryCode"
+                    :check-strictly="true"
+                    default-expand-all
+                    placeholder="选择分类"
+                    :props="{label: 'categoryName', value: 'categoryCode'}"/>
               </el-form-item>
               <el-form-item label="使用范围" prop="useScope">
                 <el-input v-model="form.useScope" placeholder="请输入 使用范围" />
@@ -56,6 +65,7 @@
 
 <script setup name="ProductEdit">
 import { productInfo, productSave } from "@/api/product";
+import {  productCategoryOptions } from "@/api/productCategory";
 import RichText from '@/components/RichText';
 import ShImage from '@/views/components/ShImage';
 
@@ -66,6 +76,7 @@ const { PRODUCT_TYPE } = proxy.useDict("PRODUCT_TYPE");
 const activeName = ref('baseInfo')
 const open = ref(false);
 const title = ref("");
+const categoryOptions = ref([]);
 const form = ref({});
 const rules = ref({
   productName: [{ required: true, message: "商品名称 不能为空", trigger: "blur" }],
@@ -93,23 +104,23 @@ function handleEdit(row) {
   if (!row || !row.id) {
     open.value = true;
     title.value = "添加商品";
+    getCategoryOptions();
   } else {
     productInfo({id:row.id}).then(res => {
       form.value = res.data;
       open.value = true;
       title.value = "修改商品";
+      getCategoryOptions();
     });
   }
 }
 
-function getImage(val) {
-  form.value.pic = val.imageUrl;
+function getCategoryOptions() {
+  productCategoryOptions({}).then(res => {
+    const datas = res.data;
+    categoryOptions.value = datas; // proxy.handleTree(datas, "categoryCode", "pcode", "children");
+  });
 }
-
-function removeImage() {
-  form.value.pic = undefined;
-}
-
 
 /** 提交按钮 */
 function submitForm() {

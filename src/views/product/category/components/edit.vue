@@ -39,11 +39,7 @@
         </el-col>
         <el-col :span="16">
           <el-form-item label="图标" prop="icon">
-            <image-preview v-if="form.icon" :src="form.icon" :height="80" :width="80"/>
-            <div style="padding: 0 12px 0 12px">
-              <image-choise @select="getIconImage"/>
-              <el-button type="danger" v-if="form.icon" @click="removeIconImage">移除图片</el-button>
-            </div>
+            <sh-image v-model="form.icon" placeholder="请选择图标"/>
           </el-form-item>
           <el-form-item label="图片组" prop="banners">
             <el-input v-model="form.banners" placeholder="图片组" />
@@ -64,7 +60,7 @@
 
 <script setup name="ProductCategoryEdit">
 import { productCategoryInfo, productCategorySave, productCategoryOptions } from "@/api/productCategory";
-import ImageChoise from '@/views/components/ImageChoise';
+import ShImage from '@/views/components/ShImage';
 
 defineExpose({handleEdit})
 const emit = defineEmits(['change']);
@@ -109,13 +105,6 @@ function getCategoryOptions() {
   });
 }
 
-function getIconImage(val) {
-  form.value.icon = val.imageUrl;
-}
-
-function removeIconImage() {
-  form.value.icon = undefined;
-}
 
 /** 取消按钮 */
 function cancel() {

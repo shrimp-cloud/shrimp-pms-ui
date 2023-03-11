@@ -72,21 +72,11 @@
         <div class="grid-content bg-purple">
           <el-table :data="form.skuStocks" border size="small">
             <el-table-column label="规格" prop="stockDesc" :show-overflow-tooltip="true" min-width="160"/>
-            <!--
-            <el-table-column label="图片" prop="pic" :show-overflow-tooltip="false" min-width="60">
+            <el-table-column label="图片" prop="pic" :show-overflow-tooltip="true" min-width="40">
               <template #default="scope">
-                <el-upload class="pic-uploader" action="#"
-                    :show-file-list="false"
-                    :on-success="handlePicSuccess"
-                    :before-upload="beforePicUpload"
-                    :http-request="handlePicUpload"
-                    :data="{rowStockDesc: scope.row.stockDesc}">
-                  <el-image v-if="scope.row.pic" fit="contain" :src="scope.row.pic + '?x-oss-process=image/resize,w_40'"/>
-                  <i v-else class="el-icon-plus pic-uploader-icon"></i>
-                </el-upload>
+                <sh-image v-model="scope.row.pic" placeholder="图片" width="32px" height="32px"/>
               </template>
             </el-table-column>
-            -->
             <el-table-column label="原价" prop="originPrice" :show-overflow-tooltip="true" min-width="100">
               <template #default="scope">
                 <el-input-number size="small" type="number" v-model="scope.row.originPrice" controls-position="right" placeholder="原价"/>
@@ -128,7 +118,7 @@
 
 <script setup name="ProductSku">
 import {productSkuInfo, productSkuSave} from "@/api/product";
-import ImageChoise from '@/views/components/ImageChoise';
+import ShImage from '@/views/components/ShImage';
 
 defineExpose({handleEdit})
 const emit = defineEmits(['change']);

@@ -50,11 +50,7 @@
             <el-input v-model='form.quantityTotal' placeholder='请输入发放数量' />
           </el-form-item>
           <el-form-item label="LOGO" prop="logo">
-            <image-preview v-if="form.logo" :src="form.logo" :height="80" :width="80"/>
-            <div style="padding: 0 12px 0 12px">
-              <image-choise @select="getIconImage"/>
-              <el-button type="danger" v-if="form.logo" @click="removeIconImage">移除图片</el-button>
-            </div>
+            <sh-image v-model="form.logo" placeholder="请选择图片"/>
           </el-form-item>
         </el-col>
       </el-row>
@@ -75,7 +71,7 @@ import {
 } from '@/api/platformCoupon';
 import { parseTime } from '@/utils/ruoyi'
 import InfoTips from "@/components/InfoTips";
-import ImageChoise from '@/views/components/ImageChoise';
+import ShImage from '@/views/components/ShImage';
 
 
 const { proxy } = getCurrentInstance();
@@ -148,14 +144,6 @@ function handleEdit(row) {
       title.value = "修改";
     });
   }
-}
-
-function getIconImage(val) {
-  form.value.logo = val.imageUrl;
-}
-
-function removeIconImage() {
-  form.value.logo = undefined;
 }
 
 /** 提交按钮 */

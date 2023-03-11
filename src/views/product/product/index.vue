@@ -31,7 +31,7 @@
       <el-table-column label="商品类型" align="center" prop="productType" width="120">
         <template #default="scope"><dict-tag :options="PRODUCT_TYPE" :value="scope.row.productType"/></template>
       </el-table-column>
-      <el-table-column label="商品分类" align="left" prop="categoryCode" min-width="120" :show-overflow-tooltip="true" />
+      <el-table-column label="商品分类" align="left" prop="categoryName" min-width="120" :show-overflow-tooltip="true" />
       <el-table-column label="单位" align="left" prop="unit" min-width="120" :show-overflow-tooltip="true" />
       <el-table-column label="使用范围" align="left" prop="useScope" min-width="120" :show-overflow-tooltip="true" />
       <el-table-column label="发布状态" align="center" prop="publishStatus" width="80">
